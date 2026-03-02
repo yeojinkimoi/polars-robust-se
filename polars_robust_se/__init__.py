@@ -17,6 +17,7 @@ def ols_hc1(
     target: ExprOrStr,
     *features: ExprOrStr,
     add_intercept: bool = False,
+    sample_weights: Optional[ExprOrStr] = None,
 ) -> pl.Expr:
     """Compute OLS with HC1 robust standard errors.
 
@@ -24,6 +25,7 @@ def ols_hc1(
         target: Target (dependent variable) column.
         *features: Feature (independent variable) columns.
         add_intercept: Whether to add a constant intercept term.
+        sample_weights: Optional sample weights column for WLS.
 
     Returns:
         Polars expression yielding a struct with:
@@ -37,6 +39,11 @@ def ols_hc1(
         feature_exprs.append(
             target_expr.fill_null(0.0).mul(0.0).add(1.0).alias("const")
         )
+
+    if sample_weights is not None:
+        sqrt_w = _parse(sample_weights).sqrt().fill_null(1e-12)
+        target_expr = target_expr * sqrt_w
+        feature_exprs = [f * sqrt_w for f in feature_exprs]
 
     return register_plugin_function(
         plugin_path=Path(__file__).parent,
