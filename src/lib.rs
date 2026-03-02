@@ -18,6 +18,7 @@ use statrs::distribution::{ContinuousCDF, StudentsT};
 #[derive(Deserialize)]
 pub struct OLSKwargs {
     null_policy: Option<String>,
+    feature_names: Option<Vec<String>>,
 }
 
 // ---------------------------------------------------------------------------
@@ -232,10 +233,13 @@ fn ols_hc1(inputs: &[Series], kwargs: OLSKwargs) -> PolarsResult<Series> {
 
     let result = compute_ols_hc1(&x, &y);
 
-    let feature_names: Vec<String> = inputs[1..]
-        .iter()
-        .map(|s| s.name().to_string())
-        .collect();
+    let feature_names: Vec<String> = match &kwargs.feature_names {
+        Some(names) if names.len() == inputs.len() - 1 => names.clone(),
+        _ => inputs[1..]
+            .iter()
+            .map(|s| s.name().to_string())
+            .collect(),
+    };
     let feature_names_series = Series::new("feature_names", &feature_names);
 
     let df = DataFrame::new(vec![

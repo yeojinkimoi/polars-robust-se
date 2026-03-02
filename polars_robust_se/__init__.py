@@ -40,6 +40,9 @@ def ols_hc1(
             target_expr.fill_null(0.0).mul(0.0).add(1.0).alias("const")
         )
 
+    # Capture names before any arithmetic (e.g. weight scaling) may lose them
+    feature_names = [f.meta.output_name() for f in feature_exprs]
+
     if sample_weights is not None:
         sqrt_w = _parse(sample_weights).sqrt().fill_null(1e-12)
         target_expr = target_expr * sqrt_w
@@ -49,7 +52,7 @@ def ols_hc1(
         plugin_path=Path(__file__).parent,
         function_name="ols_hc1",
         args=[target_expr, *feature_exprs],
-        kwargs={"null_policy": "zero"},
+        kwargs={"null_policy": "zero", "feature_names": feature_names},
         is_elementwise=False,
         returns_scalar=True,
         input_wildcard_expansion=True,
