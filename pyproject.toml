@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "polars-robust-se"
-version = "0.1.1"
+version = "0.1.2"
 description = "HC1 robust standard errors for OLS as a Polars expression plugin"
 requires-python = ">=3.9"
 dependencies = ["polars>=0.20"]
